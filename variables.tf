@@ -49,6 +49,16 @@ variable "cluster_version" {
 variable "node_groups" {
   description = "Map of EKS managed node group definitions"
   type        = any
+  default     = {
+    example = {
+      min_size     = 1
+      max_size     = 3
+      desired_size = 2
+
+      instance_types = ["t3.medium"]
+      capacity_type  = "ON_DEMAND"
+    }
+  }
 }
 
 variable "argocd_namespace" {

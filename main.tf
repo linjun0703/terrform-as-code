@@ -56,7 +56,8 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
   vpc_id          = data.aws_vpc.existing.id
-  subnet_ids      = data.aws_subnets.private.ids  # 只使用私有子网
+  subnet_ids      = data.aws_subnets.all.ids
+  control_plane_subnet_ids = data.aws_subnets.all.ids  # 如果需要的话
   node_groups     = var.node_groups
 }
 

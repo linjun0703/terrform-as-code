@@ -11,7 +11,8 @@ variable "vpc_id" {
 }
 
 variable "subnet_ids" {
-  type = list(string)
+  description = "A list of subnet IDs where the EKS cluster (ENIs) will be provisioned along with the nodes/node groups"
+  type        = list(string)
 }
 
 variable "node_groups" {
