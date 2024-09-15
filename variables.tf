@@ -1,6 +1,7 @@
 variable "aws_region" {
   description = "AWS region to deploy resources"
   type        = string
+  default     = "eu-central-1"
 }
 
 variable "vpc_name" {
@@ -16,6 +17,7 @@ variable "vpc_cidr" {
 variable "availability_zones" {
   description = "List of availability zones"
   type        = list(string)
+  default     = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
 }
 
 variable "private_subnets" {
