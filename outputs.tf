@@ -25,3 +25,8 @@ output "alb_ingress_role_arn" {
 output "debug_alb_ingress_cluster_name" {
   value = module.alb_ingress.debug_cluster_name
 }
+
+output "aws_account_id" {
+  description = "The AWS Account ID being used"
+  value       = data.aws_caller_identity.current.account_id
+}
