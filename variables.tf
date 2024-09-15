@@ -4,16 +4,19 @@ variable "aws_region" {
   default     = "eu-central-1"
 }
 
-variable "vpc_name" {
-  description = "Name of the VPC"
+variable "existing_vpc_id" {
+  description = "ID of the existing VPC to use"
   type        = string
+  default     = "vpc-00cac4eecf499dbb3"
 }
 
-variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
-  type        = string
-}
+# 移除或注释掉以下变量，因为我们不再创建新的 VPC
+# variable "vpc_name" { ... }
+# variable "vpc_cidr" { ... }
+# variable "enable_nat_gateway" { ... }
+# variable "single_nat_gateway" { ... }
 
+# 保留这些变量，因为我们仍然需要它们来获取子网信息
 variable "availability_zones" {
   description = "List of availability zones"
   type        = list(string)
@@ -28,18 +31,6 @@ variable "private_subnets" {
 variable "public_subnets" {
   description = "List of public subnet CIDR blocks"
   type        = list(string)
-}
-
-variable "enable_nat_gateway" {
-  description = "Enable NAT gateway in the VPC"
-  type        = bool
-  default     = true
-}
-
-variable "single_nat_gateway" {
-  description = "Use a single NAT gateway for all availability zones"
-  type        = bool
-  default     = false
 }
 
 variable "tags" {

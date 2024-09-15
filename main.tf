@@ -21,26 +21,42 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
-module "vpc" {
-  source = "./modules/vpc"
+# 移除原有的 VPC 模块
+# module "vpc" { ... }
 
-  vpc_name            = var.vpc_name
-  vpc_cidr            = var.vpc_cidr
-  availability_zones  = var.availability_zones
-  private_subnets     = var.private_subnets
-  public_subnets      = var.public_subnets
-  enable_nat_gateway  = var.enable_nat_gateway
-  single_nat_gateway  = var.single_nat_gateway
-  tags                = var.tags
+# 添加数据源来获取现有 VPC 的信息
+data "aws_vpc" "existing" {
+  id = var.existing_vpc_id
 }
 
+data "aws_subnets" "private" {
+  filter {
+    name   = "vpc-id"
+    values = [var.existing_vpc_id]
+  }
+  tags = {
+    Tier = "Private"
+  }
+}
+
+data "aws_subnets" "public" {
+  filter {
+    name   = "vpc-id"
+    values = [var.existing_vpc_id]
+  }
+  tags = {
+    Tier = "Public"
+  }
+}
+
+# 修改 EKS 模块以使用现有 VPC 的信息
 module "eks" {
   source = "./modules/eks"
 
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
-  vpc_id          = module.vpc.vpc_id
-  subnet_ids      = module.vpc.private_subnets
+  vpc_id          = data.aws_vpc.existing.id
+  subnet_ids      = data.aws_subnets.private.ids
   node_groups     = var.node_groups
 }
 

@@ -1,5 +1,5 @@
 output "vpc_id" {
-  value = module.vpc.vpc_id
+  value = data.aws_vpc.existing.id
 }
 
 output "eks_cluster_endpoint" {
