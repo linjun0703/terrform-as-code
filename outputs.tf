@@ -21,3 +21,7 @@ output "jenkins_namespace" {
 output "alb_ingress_role_arn" {
   value = module.alb_ingress.alb_ingress_role_arn
 }
+
+output "debug_alb_ingress_cluster_name" {
+  value = module.alb_ingress.debug_cluster_name
+}
