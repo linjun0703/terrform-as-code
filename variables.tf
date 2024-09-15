@@ -23,15 +23,9 @@ variable "availability_zones" {
   default     = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
 }
 
-variable "private_subnets" {
-  description = "List of private subnet CIDR blocks"
-  type        = list(string)
-}
-
-variable "public_subnets" {
-  description = "List of public subnet CIDR blocks"
-  type        = list(string)
-}
+# 移除这些变量
+# variable "private_subnets" { ... }
+# variable "public_subnets" { ... }
 
 variable "tags" {
   description = "Tags to apply to resources"

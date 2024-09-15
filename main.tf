@@ -56,7 +56,7 @@ module "eks" {
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
   vpc_id          = data.aws_vpc.existing.id
-  subnet_ids      = data.aws_subnets.private.ids
+  subnet_ids      = data.aws_subnets.all.ids
   node_groups     = var.node_groups
 }
 
@@ -106,4 +106,11 @@ module "jenkins" {
   namespace        = var.jenkins_namespace
 
   depends_on = [module.eks]
+}
+
+data "aws_subnets" "all" {
+  filter {
+    name   = "vpc-id"
+    values = [var.existing_vpc_id]
+  }
 }
