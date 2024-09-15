@@ -11,11 +11,11 @@ output "eks_cluster_name" {
 }
 
 output "argocd_namespace" {
-  value = module.argocd.namespace
+  value = var.argocd_namespace
 }
 
 output "jenkins_namespace" {
-  value = module.jenkins.namespace
+  value = var.jenkins_namespace
 }
 
 output "alb_ingress_role_arn" {
