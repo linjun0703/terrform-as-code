@@ -48,17 +48,12 @@ variable "cluster_version" {
 
 variable "node_groups" {
   description = "Map of EKS managed node group definitions"
-  type        = any
-  default     = {
-    example = {
-      min_size     = 1
-      max_size     = 3
-      desired_size = 2
-
-      instance_types = ["t3.medium"]
-      capacity_type  = "ON_DEMAND"
-    }
-  }
+  type        = map(object({
+    desired_capacity = number
+    max_capacity     = number
+    min_capacity     = number
+    instance_type    = string
+  }))
 }
 
 variable "argocd_namespace" {
@@ -71,4 +66,12 @@ variable "jenkins_namespace" {
   description = "Kubernetes namespace for Jenkins"
   type        = string
   default     = "jenkins"
+}
+
+variable "vpc_private_subnets" {
+  type = list(string)
+}
+
+variable "vpc_public_subnets" {
+  type = list(string)
 }

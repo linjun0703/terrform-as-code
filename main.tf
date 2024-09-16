@@ -51,13 +51,40 @@ data "aws_subnets" "public" {
 
 # 修改 EKS 模块以使用现有 VPC 的信息
 module "eks" {
-  source = "./modules/eks"
+  source  = "terraform-aws-modules/eks/aws"
+  version = "~> 19.0"
 
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
-  vpc_id          = data.aws_vpc.existing.id
-  subnet_ids      = data.aws_subnets.all.ids
-  node_groups     = var.node_groups
+
+  vpc_id     = data.aws_vpc.existing.id
+  subnet_ids = data.aws_subnets.private.ids  # 只使用私有子网
+
+  cluster_endpoint_public_access  = false # 禁用公共访问
+  cluster_endpoint_private_access = true  # 启用私有访问
+
+  # 删除 cluster_endpoint_public_access_cidrs 配置
+
+  # 保留其他安全配置
+  create_cluster_security_group = true
+  cluster_security_group_additional_rules = {
+    egress_nodes_ephemeral_ports_tcp = {
+      description                = "To node 1025-65535"
+      protocol                   = "tcp"
+      from_port                  = 1025
+      to_port                    = 65535
+      type                       = "egress"
+      source_node_security_group = true
+    }
+  }
+
+  # 保留集群加密配置
+  cluster_encryption_config = [{
+    provider_key_arn = "arn:aws:kms:YOUR_REGION:YOUR_ACCOUNT_ID:key/YOUR_KMS_KEY_ID"
+    resources        = ["secrets"]
+  }]
+
+  eks_managed_node_groups = var.node_groups
 }
 
 provider "kubernetes" {
@@ -114,3 +141,32 @@ data "aws_subnets" "all" {
     values = [var.existing_vpc_id]
   }
 }
+
+# module "vpc" {
+#   source  = "terraform-aws-modules/vpc/aws"
+#   version = "~> 3.0"
+
+#   name = "${var.cluster_name}-vpc"
+#   cidr = var.vpc_cidr
+
+#   azs             = var.availability_zones
+#   private_subnets = var.vpc_private_subnets
+#   public_subnets  = var.vpc_public_subnets
+
+#   enable_nat_gateway   = true
+#   single_nat_gateway   = true
+#   enable_dns_hostnames = true
+# }
+
+# module "eks" {
+#   source  = "terraform-aws-modules/eks/aws"
+#   version = "~> 19.0"
+
+#   cluster_name    = var.cluster_name
+#   cluster_version = var.cluster_version
+
+#   vpc_id     = module.vpc.vpc_id
+#   subnet_ids = module.vpc.private_subnets
+
+#   eks_managed_node_groups = var.node_groups
+# }
