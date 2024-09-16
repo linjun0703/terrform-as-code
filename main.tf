@@ -71,7 +71,7 @@ module "eks" {
   vpc_id     = data.aws_vpc.existing.id
   subnet_ids = var.subnet_ids
 
-  cluster_endpoint_public_access  = false
+  cluster_endpoint_public_access  = true  # 临时启用公共访问以便于调试
   cluster_endpoint_private_access = true
 
   enable_irsa = true
@@ -79,6 +79,8 @@ module "eks" {
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   create_cluster_security_group = true
+  create_node_security_group    = true
+
   cluster_security_group_additional_rules = {
     egress_nodes_ephemeral_ports_tcp = {
       description                = "To node 1025-65535"
@@ -95,6 +97,26 @@ module "eks" {
       to_port     = 443
       type        = "ingress"
       cidr_blocks = ["10.121.0.0/16"]  # 假设您的管理机器在 10.121.0.0/16 网段
+    }
+  }
+
+  node_security_group_additional_rules = {
+    ingress_self_all = {
+      description = "Node to node all ports/protocols"
+      protocol    = "-1"
+      from_port   = 0
+      to_port     = 0
+      type        = "ingress"
+      self        = true
+    }
+    egress_all = {
+      description      = "Node all egress"
+      protocol         = "-1"
+      from_port        = 0
+      to_port          = 0
+      type             = "egress"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
     }
   }
 
@@ -121,6 +143,10 @@ module "eks" {
       tags = {
         ExtraTag = "example"
       }
+
+      iam_role_additional_policies = {
+        AmazonEKS_CNI_Policy = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+      }
     }
   }
 
@@ -128,7 +154,7 @@ module "eks" {
 
   aws_auth_roles = [
     {
-      rolearn  = "arn:aws:iam::66666666666:role/role1"
+      rolearn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/role1"
       username = "role1"
       groups   = ["system:masters"]
     },
@@ -136,7 +162,7 @@ module "eks" {
 
   aws_auth_users = [
     {
-      userarn  = "arn:aws:iam::66666666666:user/user1"
+      userarn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/user1"
       username = "user1"
       groups   = ["system:masters"]
     },
