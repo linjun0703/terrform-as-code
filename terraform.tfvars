@@ -15,3 +15,4 @@ subnet_ids = [
   "subnet-0146fbebd46b6bc74",
   "subnet-09bd0ea86ddaec783"
 ]
+enable_opentelemetry = true

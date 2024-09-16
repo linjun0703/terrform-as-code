@@ -63,20 +63,21 @@ data "aws_subnet" "selected" {
 # 修改 EKS 模块以使用现有 VPC 的信息
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19.0"
+  version = "~> 19.15"  # 使用最新的稳定版本
 
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
 
   vpc_id     = data.aws_vpc.existing.id
-  subnet_ids = [for subnet in data.aws_subnet.selected : subnet.id]
+  subnet_ids = var.subnet_ids
 
-  cluster_endpoint_public_access  = false # 禁用公共访问
-  cluster_endpoint_private_access = true  # 启用私有访问
+  cluster_endpoint_public_access  = true
+  cluster_endpoint_public_access_cidrs = ["YOUR_PUBLIC_IP/32"]  # 替换为您的公网 IP
 
-  # 删除 cluster_endpoint_public_access_cidrs 配置
+  enable_irsa = true
 
-  # 保留其他安全配置
+  cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+
   create_cluster_security_group = true
   cluster_security_group_additional_rules = {
     egress_nodes_ephemeral_ports_tcp = {
@@ -87,15 +88,84 @@ module "eks" {
       type                       = "egress"
       source_node_security_group = true
     }
+    ingress_management_machine = {
+      description = "Management machine access"
+      protocol    = "tcp"
+      from_port   = 443
+      to_port     = 443
+      type        = "ingress"
+      cidr_blocks = ["10.121.0.0/16"]  # 假设您的管理机器在 10.121.0.0/16 网段
+    }
   }
 
-  # 修改集群加密配置
   cluster_encryption_config = {
     provider_key_arn = aws_kms_key.eks.arn
     resources        = ["secrets"]
   }
 
-  eks_managed_node_groups = var.node_groups
+  eks_managed_node_groups = {
+    default = {
+      min_size     = var.node_groups.example.min_capacity
+      max_size     = var.node_groups.example.max_capacity
+      desired_size = var.node_groups.example.desired_capacity
+
+      instance_types = [var.node_groups.example.instance_type]
+      capacity_type  = "ON_DEMAND"
+
+      labels = {
+        Environment = "test"
+        GithubRepo  = "terraform-aws-eks"
+        GithubOrg   = "terraform-aws-modules"
+      }
+
+      tags = {
+        ExtraTag = "example"
+      }
+    }
+  }
+
+  manage_aws_auth_configmap = true
+
+  aws_auth_roles = [
+    {
+      rolearn  = "arn:aws:iam::66666666666:role/role1"
+      username = "role1"
+      groups   = ["system:masters"]
+    },
+  ]
+
+  aws_auth_users = [
+    {
+      userarn  = "arn:aws:iam::66666666666:user/user1"
+      username = "user1"
+      groups   = ["system:masters"]
+    },
+  ]
+
+  tags = {
+    Environment = "test"
+    Terraform   = "true"
+  }
+
+  fargate_profiles = {
+    default = {
+      name = "default"
+      selectors = [
+        {
+          namespace = "*"
+        }
+      ]
+    }
+  }
+
+  # 启用 Fargate 日志记录
+  fargate_profile_defaults = {
+    kubernetes_version = var.cluster_version
+    logging = {
+      enabled = true
+      log_types = ["scheduler", "authenticator", "controllerManager"]
+    }
+  }
 }
 
 # 添加 KMS 密钥资源
@@ -188,3 +258,50 @@ data "aws_subnets" "all" {
 
 #   eks_managed_node_groups = var.node_groups
 # }
+
+# 在文件末尾添加以下内容
+
+resource "helm_release" "opentelemetry_collector" {
+  name       = "opentelemetry-collector"
+  repository = "https://open-telemetry.github.io/opentelemetry-helm-charts"
+  chart      = "opentelemetry-collector"
+  namespace  = "observability"
+  create_namespace = true
+
+  set {
+    name  = "mode"
+    value = "daemonset"
+  }
+
+  set {
+    name  = "config.exporters.logging"
+    value = "{}"
+  }
+
+  set {
+    name  = "config.processors.batch"
+    value = "{}"
+  }
+
+  set {
+    name  = "config.receivers.otlp.protocols.grpc"
+    value = "{}"
+  }
+
+  set {
+    name  = "config.service.pipelines.logs.receivers[0]"
+    value = "otlp"
+  }
+
+  set {
+    name  = "config.service.pipelines.logs.processors[0]"
+    value = "batch"
+  }
+
+  set {
+    name  = "config.service.pipelines.logs.exporters[0]"
+    value = "logging"
+  }
+
+  depends_on = [module.eks]
+}

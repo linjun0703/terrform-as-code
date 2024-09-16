@@ -48,12 +48,14 @@ variable "cluster_version" {
 
 variable "node_groups" {
   description = "Map of EKS managed node group definitions"
-  type        = map(object({
-    desired_capacity = number
-    max_capacity     = number
-    min_capacity     = number
-    instance_type    = string
-  }))
+  type = object({
+    example = object({
+      min_capacity     = number
+      max_capacity     = number
+      desired_capacity = number
+      instance_type    = string
+    })
+  })
 }
 
 variable "argocd_namespace" {
@@ -76,4 +78,10 @@ variable "subnet_ids" {
     "subnet-0146fbebd46b6bc74",
     "subnet-09bd0ea86ddaec783"
   ]
+}
+
+variable "enable_opentelemetry" {
+  description = "Whether to enable OpenTelemetry for logging"
+  type        = bool
+  default     = true
 }
