@@ -89,13 +89,20 @@ module "eks" {
     }
   }
 
-  # 保留集群加密配置
-  cluster_encryption_config = [{
-    provider_key_arn = "arn:aws:kms:YOUR_REGION:YOUR_ACCOUNT_ID:key/YOUR_KMS_KEY_ID"
+  # 修改集群加密配置
+  cluster_encryption_config = {
+    provider_key_arn = aws_kms_key.eks.arn
     resources        = ["secrets"]
-  }]
+  }
 
   eks_managed_node_groups = var.node_groups
+}
+
+# 添加 KMS 密钥资源
+resource "aws_kms_key" "eks" {
+  description             = "EKS Secret Encryption Key"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
 }
 
 provider "kubernetes" {
