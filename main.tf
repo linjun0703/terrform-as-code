@@ -79,7 +79,7 @@ module "eks" {
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   create_cluster_security_group = true
-  create_node_security_group    = true
+  create_node_security_group    = false  # 设置为 false，使用现有的安全组
 
   cluster_security_group_additional_rules = {
     egress_nodes_ephemeral_ports_tcp = {
@@ -109,15 +109,7 @@ module "eks" {
       type        = "ingress"
       self        = true
     }
-    egress_all = {
-      description      = "Node all egress"
-      protocol         = "-1"
-      from_port        = 0
-      to_port          = 0
-      type             = "egress"
-      cidr_blocks      = ["0.0.0.0/0"]
-      ipv6_cidr_blocks = ["::/0"]
-    }
+    # 移除 egress_all 规则，因为它可能已经存在
   }
 
   cluster_encryption_config = {
