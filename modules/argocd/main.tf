@@ -14,4 +14,6 @@ resource "helm_release" "argocd" {
     name  = "server.service.type"
     value = "LoadBalancer"
   }
+
+  timeout = 600 # 10 minutes
 }

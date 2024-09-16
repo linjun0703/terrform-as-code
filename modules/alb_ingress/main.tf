@@ -62,9 +62,9 @@ resource "aws_iam_role_policy_attachment" "alb_ingress" {
 }
 
 resource "aws_iam_policy" "alb_ingress" {
-  name        = "ALBIngressControllerIAMPolicy"
+  name        = "ALBIngressControllerIAMPolicy-${var.cluster_name}"
   path        = "/"
-  description = "ALB Ingress Controller IAM Policy"
+  description = "IAM policy for ALB Ingress Controller"
 
   policy = jsonencode({
     Version = "2012-10-17"

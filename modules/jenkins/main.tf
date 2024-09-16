@@ -14,4 +14,9 @@ resource "helm_release" "jenkins" {
     name  = "controller.serviceType"
     value = "LoadBalancer"
   }
+
+  wait = true
+  wait_for_jobs = true
+
+  timeout = 600 # 10 minutes
 }
