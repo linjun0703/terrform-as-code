@@ -71,8 +71,8 @@ module "eks" {
   vpc_id     = data.aws_vpc.existing.id
   subnet_ids = var.subnet_ids
 
-  cluster_endpoint_public_access  = true
-  cluster_endpoint_public_access_cidrs = ["YOUR_PUBLIC_IP/32"]  # 替换为您的公网 IP
+  cluster_endpoint_public_access  = false
+  cluster_endpoint_private_access = true
 
   enable_irsa = true
 
