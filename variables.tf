@@ -68,10 +68,12 @@ variable "jenkins_namespace" {
   default     = "jenkins"
 }
 
-variable "vpc_private_subnets" {
-  type = list(string)
-}
-
-variable "vpc_public_subnets" {
-  type = list(string)
+variable "subnet_ids" {
+  description = "List of subnet IDs to use for the EKS cluster"
+  type        = list(string)
+  default     = [
+    "subnet-02ad1fcba40bcdea3",
+    "subnet-0146fbebd46b6bc74",
+    "subnet-09bd0ea86ddaec783"
+  ]
 }

@@ -10,7 +10,8 @@ node_groups = {
     instance_type    = "c5.large"
   }
 }
-// 删除以下行
-// vpc_cidr = "10.0.0.0/16"
-// vpc_private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-// vpc_public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+subnet_ids = [
+  "subnet-02ad1fcba40bcdea3",
+  "subnet-0146fbebd46b6bc74",
+  "subnet-09bd0ea86ddaec783"
+]

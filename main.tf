@@ -29,24 +29,35 @@ data "aws_vpc" "existing" {
   id = var.existing_vpc_id
 }
 
-data "aws_subnets" "private" {
-  filter {
-    name   = "vpc-id"
-    values = [var.existing_vpc_id]
-  }
-  tags = {
-    Tier = "Private"
-  }
-}
+# 删除或注释掉这些数据源
+# data "aws_subnets" "private" {
+#   filter {
+#     name   = "vpc-id"
+#     values = [var.existing_vpc_id]
+#   }
+#   tags = {
+#     Tier = "Private"
+#   }
+# }
 
-data "aws_subnets" "public" {
-  filter {
-    name   = "vpc-id"
-    values = [var.existing_vpc_id]
-  }
-  tags = {
-    Tier = "Public"
-  }
+# data "aws_subnets" "public" {
+#   filter {
+#     name   = "vpc-id"
+#     values = [var.existing_vpc_id]
+#   }
+#   tags = {
+#     Tier = "Public"
+#   }
+# }
+
+# 添加新的数据源来获取指定的子网
+data "aws_subnet" "selected" {
+  for_each = toset([
+    "subnet-02ad1fcba40bcdea3",
+    "subnet-0146fbebd46b6bc74",
+    "subnet-09bd0ea86ddaec783"
+  ])
+  id = each.value
 }
 
 # 修改 EKS 模块以使用现有 VPC 的信息
@@ -58,7 +69,7 @@ module "eks" {
   cluster_version = var.cluster_version
 
   vpc_id     = data.aws_vpc.existing.id
-  subnet_ids = data.aws_subnets.private.ids  # 只使用私有子网
+  subnet_ids = [for subnet in data.aws_subnet.selected : subnet.id]
 
   cluster_endpoint_public_access  = false # 禁用公共访问
   cluster_endpoint_private_access = true  # 启用私有访问
